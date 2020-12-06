@@ -1,5 +1,5 @@
-// Solution for Advent of Code 2020 -- Day 4
-// https://adventofcode.com/2020/day/4
+// Solution for Advent of Code 2020 -- Day 5
+// https://adventofcode.com/2020/day/5
 
 package main
 
