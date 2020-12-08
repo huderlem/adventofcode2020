@@ -36,6 +36,26 @@ func ReadFileLines(filepath string) []string {
 	return lines
 }
 
+// ReadFileChunks reads a file as a list of chunks separated by blank lines.
+// Each chunk is itself an array of lines.
+func ReadFileChunks(filepath string) [][]string {
+	lines := ReadFileLines(filepath)
+	chunks := [][]string{}
+	curChunk := []string{}
+	for _, line := range lines {
+		if len(line) == 0 && len(curChunk) > 0 {
+			chunks = append(chunks, curChunk)
+			curChunk = []string{}
+		} else {
+			curChunk = append(curChunk, line)
+		}
+	}
+	if len(curChunk) > 0 {
+		chunks = append(chunks, curChunk)
+	}
+	return chunks
+}
+
 // ReadFileInts reads a file as an line-separated list of integers.
 func ReadFileInts(filepath string) []int {
 	rawVals := ReadFileLines(filepath)

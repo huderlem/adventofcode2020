@@ -13,24 +13,18 @@ import (
 )
 
 func parsePassports() []map[string]string {
-	lines := util.ReadFileLines("input.txt")
+	chunks := util.ReadFileChunks("input.txt")
 	re, _ := regexp.Compile(`\w+:\S+`)
 	passports := []map[string]string{}
-	curPassport := map[string]string{}
-	for _, line := range lines {
-		if len(line) == 0 && len(curPassport) > 0 {
-			passports = append(passports, curPassport)
-			curPassport = map[string]string{}
-		} else {
+	for _, chunk := range chunks {
+		curPassport := map[string]string{}
+		for _, line := range chunk {
 			for _, item := range re.FindAllString(line, -1) {
 				parts := strings.Split(item, ":")
 				curPassport[parts[0]] = parts[1]
 			}
 		}
-	}
-	if len(curPassport) > 0 {
 		passports = append(passports, curPassport)
-		curPassport = map[string]string{}
 	}
 
 	return passports

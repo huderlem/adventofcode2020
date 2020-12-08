@@ -10,20 +10,14 @@ import (
 )
 
 func parseDeclarations() [][]string {
-	lines := util.ReadFileLines("input.txt")
+	chunks := util.ReadFileChunks("input.txt")
 	declarations := [][]string{}
-	curDeclaration := []string{}
-	for _, line := range lines {
-		if len(line) == 0 && len(curDeclaration) > 0 {
-			declarations = append(declarations, curDeclaration)
-			curDeclaration = []string{}
-		} else {
+	for _, chunk := range chunks {
+		curDeclaration := []string{}
+		for _, line := range chunk {
 			curDeclaration = append(curDeclaration, line)
 		}
-	}
-	if len(curDeclaration) > 0 {
 		declarations = append(declarations, curDeclaration)
-		curDeclaration = []string{}
 	}
 
 	return declarations
