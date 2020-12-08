@@ -11,111 +11,84 @@ import (
 	"github.com/huderlem/adventofcode2020/util"
 )
 
-type instr struct {
+type instruction struct {
 	op    string
 	param int
 }
 
-func parseInput() []instr {
+func parseProgram() []instruction {
 	lines := util.ReadFileLines("input.txt")
-	instructions := []instr{}
+	program := []instruction{}
 	for _, line := range lines {
 		parts := strings.Split(line, " ")
-		i := instr{
-			op: parts[0],
+		param, _ := strconv.Atoi(parts[1][1:])
+		if parts[1][0] == '-' {
+			param = -param
 		}
-		v, _ := strconv.Atoi(parts[1][1:])
-		if parts[1][0] == '+' {
-			i.param = v
-		} else {
-			i.param = -v
-		}
-		instructions = append(instructions, i)
+		program = append(program, instruction{
+			op:    parts[0],
+			param: param,
+		})
 	}
-	return instructions
+	return program
+}
+
+func runProgram(program []instruction) (bool, int) {
+	acc := 0
+	pc := 0
+	visited := map[int]bool{}
+	for {
+		if pc == len(program) {
+			// Program terminated successfully.
+			return true, acc
+		}
+		if _, ok := visited[pc]; ok {
+			// Encountered an infinite loop.
+			return false, acc
+		}
+		visited[pc] = true
+		switch program[pc].op {
+		case "acc":
+			acc += program[pc].param
+			pc++
+		case "jmp":
+			pc += program[pc].param
+		case "nop":
+			pc++
+		}
+	}
 }
 
 func part1() int {
-	instructions := parseInput()
-	flipped := []int{}
-	for i, inst := range instructions {
-		if inst.op == "jmp" || inst.op == "nop" {
-			flipped = append(flipped, i)
-		}
+	program := parseProgram()
+	terminates, acc := runProgram(program)
+	if terminates {
+		// Program is supposed to result in an infinite loop.
+		return -1
 	}
-	for _, i := range flipped {
-		acc := 0
-		pc := 0
-		visited := map[int]bool{}
-		for {
-			if pc == len(instructions) {
-				return acc
-			}
-			if _, ok := visited[pc]; ok {
-				break
-			}
-			visited[pc] = true
-			op := instructions[pc].op
-			if pc == i {
-				if op == "acc" {
-					op = "jmp"
-				} else if op == "jmp" {
-					op = "nop"
-				}
-			}
-			switch op {
-			case "acc":
-				acc += instructions[pc].param
-				pc++
-			case "jmp":
-				pc += instructions[pc].param
-			case "nop":
-				pc++
-			}
-		}
-	}
-	return -1
+	return acc
 }
 
 func part2() int {
-	instructions := parseInput()
-	flipped := []int{}
-	for i, inst := range instructions {
-		if inst.op == "jmp" || inst.op == "nop" {
-			flipped = append(flipped, i)
-		}
-	}
-	for _, i := range flipped {
-		acc := 0
-		pc := 0
-		visited := map[int]bool{}
-		for {
-			if pc == len(instructions) {
+	program := parseProgram()
+	// Brute-force and try flipping each "jmp" or "nop" instruction in the
+	// entire program, one at a time.
+	for i, instr := range program {
+		if instr.op == "jmp" || instr.op == "nop" {
+			modifiedProgram := make([]instruction, len(program))
+			copy(modifiedProgram, program)
+			if instr.op == "jmp" {
+				modifiedProgram[i].op = "nop"
+			} else {
+				modifiedProgram[i].op = "jmp"
+			}
+			terminates, acc := runProgram(modifiedProgram)
+			if terminates {
 				return acc
 			}
-			if _, ok := visited[pc]; ok {
-				break
-			}
-			visited[pc] = true
-			op := instructions[pc].op
-			if pc == i {
-				if op == "acc" {
-					op = "jmp"
-				} else if op == "jmp" {
-					op = "nop"
-				}
-			}
-			switch op {
-			case "acc":
-				acc += instructions[pc].param
-				pc++
-			case "jmp":
-				pc += instructions[pc].param
-			case "nop":
-				pc++
-			}
 		}
 	}
+	// None of the flipped instructions result in a terminating program.
 	return -1
 }
 
