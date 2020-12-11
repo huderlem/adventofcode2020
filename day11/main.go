@@ -100,7 +100,8 @@ func seatsAreEqual(a, b seatsLayout) bool {
 	return true
 }
 
-func applySeatingRules(seats seatsLayout, counterFunc occupiedCounter, occupiedLimit int) seatsLayout {
+func applySeatingRules(seats seatsLayout, counterFunc occupiedCounter, occupiedLimit int) (seatsLayout, bool) {
+	changed := false
 	width, height := seats.getDimensions()
 	newSeats := make(seatsLayout, width)
 	for i := 0; i < width; i++ {
@@ -115,13 +116,19 @@ func applySeatingRules(seats seatsLayout, counterFunc occupiedCounter, occupiedL
 			}
 			occupiedCount := counterFunc(x, y, seats)
 			if seat == empty && occupiedCount == 0 {
+				if newSeats[x][y] != occupied {
+					changed = true
+				}
 				newSeats[x][y] = occupied
 			} else if seat == occupied && occupiedCount >= occupiedLimit {
+				if newSeats[x][y] != empty {
+					changed = true
+				}
 				newSeats[x][y] = empty
 			}
 		}
 	}
-	return newSeats
+	return newSeats, changed
 }
 
 func countOccupiedSeats(seats seatsLayout) int {
@@ -140,8 +147,8 @@ func countOccupiedSeats(seats seatsLayout) int {
 func part1() int {
 	seats := parseSeatGrid()
 	for {
-		newSeats := applySeatingRules(seats, getOccupiedNeighborCount, 4)
-		if seatsAreEqual(seats, newSeats) {
+		newSeats, changed := applySeatingRules(seats, getOccupiedNeighborCount, 4)
+		if !changed {
 			return countOccupiedSeats(newSeats)
 		}
 		seats = newSeats
@@ -151,8 +158,8 @@ func part1() int {
 func part2() int {
 	seats := parseSeatGrid()
 	for {
-		newSeats := applySeatingRules(seats, getVisibleNeighborCount, 5)
-		if seatsAreEqual(seats, newSeats) {
+		newSeats, changed := applySeatingRules(seats, getVisibleNeighborCount, 5)
+		if !changed {
 			return countOccupiedSeats(newSeats)
 		}
 		seats = newSeats
